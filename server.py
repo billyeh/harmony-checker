@@ -1,5 +1,5 @@
 from shutil import copyfile
-from flask import Flask, request
+from flask import Flask, request, render_template
 from harmony import analyze_file, rules, Report
 
 app = Flask(__name__)
@@ -10,13 +10,7 @@ def upload_file():
   if request.method == 'POST':
     f = request.files['file']
     report = analyze_file(f.read())
-    copyfile(report.image, 'static/temp.png')
-    return '''
-      <!doctype html>
-      {}
-      <br />
-      <img src="temp.png" style="width: 100%"/>
-      '''.format('\n'.join(report.errors))
+    return render_template('results.html', errors=report.errors)
   else:
     return '''
       <!doctype html>
@@ -27,9 +21,9 @@ def upload_file():
       </form>
       '''
 
-@app.route('/temp.png')
-def send_image():
-  return app.send_static_file('temp.png')
+@app.route('/vexflow.js')
+def send_vexflow():
+  return app.send_static_file('vexflow.js')
 
 if __name__ == '__main__':
   app.run()

@@ -156,6 +156,7 @@ def ResolveSevenths(prev, curr, next):
   >>> ResolveSevenths(None, c1, c3)
   False
   """
+
   if not next:
     return True
   for i in range(4):
@@ -234,7 +235,33 @@ def ParallelOctavesFifthsUnisons(prev, curr, next):
   return True
 
 def HiddenOctavesAndFifths(prev, curr, next):
-  #TODO make this a warning
+  """Voices moving in similar motion should not end up on fifths or octaves
+
+  >>> c1 = chord.Chord(['C2', 'G1', 'E1', 'C1'])
+  >>> c2 = chord.Chord(['E2', 'A1', 'E1', 'C1'])
+  >>> HiddenOctavesAndFifths(c1, c2, None)
+  False
+  >>> c3 = chord.Chord(['D2', 'G1', 'G2', 'C1'])
+  >>> HiddenOctavesAndFifths(c1, c3, None)
+  True
+  """
+
+  if not prev:
+    return True
+  for i in range(4):
+    for j in range(4):
+      firstInt = interval.notesToGeneric(prev.pitches[i],
+          curr.pitches[i]).staffDistance
+      secondInt = interval.notesToGeneric(prev.pitches[j],
+          curr.pitches[j]).staffDistance
+      if firstInt == 0 or secondInt == 0:
+        continue
+      sign = lambda x: (1, -1)[x<0]
+      if sign(firstInt) == sign(secondInt) and firstInt != secondInt:
+        resultInt = interval.notesToGeneric(curr.pitches[i], 
+            curr.pitches[j]).staffDistance
+        if abs(resultInt) in [7, 4]:
+          return False
   return True
 
 def NoRootDiminishedChords(prev, curr, next):
@@ -255,6 +282,10 @@ def NoRootDiminishedChords(prev, curr, next):
     return False
   return True
 
+def SevenSevenChordResolved(prev, curr, next):
+
+  return True
+
 rules = [
   Spacing, 
   HasThird,
@@ -268,7 +299,8 @@ rules = [
   NoAugmentedSecond,
   ParallelOctavesFifthsUnisons,
   HiddenOctavesAndFifths,
-  NoRootDiminishedChords
+  NoRootDiminishedChords,
+  SevenSevenChordResolved
 ]
 
 def run_tests():
@@ -294,10 +326,9 @@ def analyze_file(data):
     for rule in rules:
       if not rule(prev, curr, next):
         errors.append(rule.__name__ + ' failed for chord ' + str(i))
-  image = sChords.write('musicxml.png')
   if not errors:
     errors.append('No errors')
-  return Report(errors, image)
+  return Report(errors, "")
 
 class Report:
   def __init__(self, errors, image):
