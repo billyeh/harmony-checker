@@ -11,6 +11,7 @@
   var stave = new Vex.Flow.Stave(10, 0, 500);
 
   var chords = {{ chords|tojson }};
+  console.log(chords);
 
   var sig = new Vex.Flow.KeySignature("{{key}}");
   sig.addToStave(stave);
@@ -25,7 +26,7 @@
     "": "n"
   };
   for (var i = 0; i < chords.length; i++) {
-    var chord = chords[i].reverse();
+    var chord = chords[i].notes.reverse();
     var keys = [];
     for (var j = 0; j < chord.length; j++) {
       keys.push(chord[j].key);
@@ -40,6 +41,8 @@
         staveNote.addAccidental(j, new Vex.Flow.Accidental(note.accidental));
       }
     }
+    staveNote.addModifier(0, new Vex.Flow.Annotation(chords[i].roman)
+      .setVerticalJustification(Vex.Flow.Annotation.VerticalJustify.BOTTOM));
     notes.push(staveNote);
   }
 
@@ -61,6 +64,8 @@
    // Render voice
    voice.draw(ctx, stave);
 </script>
-<br />
-{{ '\n'.join(errors) }}
+{% for error in errors %}
+  <br />
+  <span class="error">{{ error }}</span>
+{% endfor %}
 

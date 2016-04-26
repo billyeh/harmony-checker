@@ -183,6 +183,8 @@ def PrepareSevenths(prev, curr, next):
     return True
   for i in range(4):
     if curr.pitches[i] == curr.seventh:
+      if not curr.pitches[i].name in prev.pitchNames:
+        return True
       return prev.pitches[i] == curr.pitches[i]
   return True
 
@@ -344,7 +346,7 @@ class Report:
           'displayAcc': p not in keyPitches,
           'accidental': p.accidental.modifier if p.accidental else ''
         })
-      self.chords.append(cObj)
+      self.chords.append({'notes': cObj, 'roman': c.lyric})
     self.key = k.tonicPitchNameWithCase
     if self.key[0].islower():
       self.key = self.key[0].upper() + 'm' + self.key[1:]
@@ -354,7 +356,8 @@ def main():
     run_tests()
   else:
     data = open(sys.argv[1]).read()
-    analyze_file(data)
+    report = analyze_file(data)
+    print(report.errors)
   print('Done!')
 
 if __name__ == '__main__':
