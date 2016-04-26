@@ -10,7 +10,8 @@ def upload_file():
   if request.method == 'POST':
     f = request.files['file']
     report = analyze_file(f.read())
-    return render_template('results.html', errors=report.errors)
+    return render_template('results.html', errors=report.errors, key=report.key,
+        chords=report.chords)
   else:
     return '''
       <!doctype html>

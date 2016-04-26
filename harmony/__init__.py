@@ -328,12 +328,26 @@ def analyze_file(data):
         errors.append(rule.__name__ + ' failed for chord ' + str(i))
   if not errors:
     errors.append('No errors')
-  return Report(errors, "")
+  return Report(errors, chords[1:-1])
 
 class Report:
-  def __init__(self, errors, image):
+  def __init__(self, errors, chords):
     self.errors = errors
-    self.image = image
+    self.chords = []
+    k = chords[0].key if chords else 'C'
+    keyPitches = k.getPitches(pitch.Pitch('C1'), pitch.Pitch('C8'))
+    for c in chords:
+      cObj = []
+      for p in c.pitches:
+        cObj.append({
+          'key': '/'.join((str(p.step), str(p.octave))),
+          'displayAcc': p not in keyPitches,
+          'accidental': p.accidental.modifier if p.accidental else ''
+        })
+      self.chords.append(cObj)
+    self.key = k.tonicPitchNameWithCase
+    if self.key[0].islower():
+      self.key = self.key[0].upper() + 'm' + self.key[1:]
 
 def main():
   if len(sys.argv) == 1:

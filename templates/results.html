@@ -4,34 +4,52 @@
 <canvas width="700px" height="200px" id="music"></canvas>
 <script>
   var canvas = $("#music")[0];
-  console.log(canvas);
   var renderer = new Vex.Flow.Renderer(canvas,
     Vex.Flow.Renderer.Backends.CANVAS);
 
   var ctx = renderer.getContext();
   var stave = new Vex.Flow.Stave(10, 0, 500);
+
+  var chords = {{ chords|tojson }};
+
+  var sig = new Vex.Flow.KeySignature("{{key}}");
+  sig.addToStave(stave);
   stave.addClef("treble").setContext(ctx).draw();
-  var notes = [
-     // A quarter-note C.
-     new Vex.Flow.StaveNote({ keys: ["c/4"], duration: "q" }),
 
-     // A quarter-note D.
-     new Vex.Flow.StaveNote({ keys: ["d/4"], duration: "q" }),
+  var notes = [];
+  var ACCIDENTALS = {
+    "--": "bb",
+    "-": "b",
+    "+": "#",
+    "++": "##",
+    "": "n"
+  };
+  for (var i = 0; i < chords.length; i++) {
+    var chord = chords[i].reverse();
+    var keys = [];
+    for (var j = 0; j < chord.length; j++) {
+      keys.push(chord[j].key);
+    }
+    var staveNote = new Vex.Flow.StaveNote({keys: keys, duration: "q"});
+    for (var j = 0; j < chord.length; j++) {
+      var note = chord[j];
+      if (note.displayAcc) {
+        if (note.accidental in ACCIDENTALS) {
+          note.accidental = ACCIDENTALS[note.accidental];
+        }
+        staveNote.addAccidental(j, new Vex.Flow.Accidental(note.accidental));
+      }
+    }
+    notes.push(staveNote);
+  }
 
-     // A quarter-note rest. Note that the key (b/4) specifies the vertical
-     // position of the rest.
-     new Vex.Flow.StaveNote({ keys: ["b/4"], duration: "qr" }),
-
-     // A C-Major chord.
-     new Vex.Flow.StaveNote({ keys: ["c/4", "e/4", "g/4"], duration: "q" })
-   ];
- 
    // Create a voice in 4/4
    var voice = new Vex.Flow.Voice({
      num_beats: 4,
      beat_value: 4,
      resolution: Vex.Flow.RESOLUTION
    });
+   voice.setStrict(false);
 
    // Add notes to voice
    voice.addTickables(notes);
