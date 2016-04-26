@@ -327,7 +327,7 @@ def analyze_file(data):
     prev, curr, next = chords[i:i+3]
     for rule in rules:
       if not rule(prev, curr, next):
-        errors.append(rule.__name__ + ' failed for chord ' + str(i))
+        errors.append(rule.__name__ + ' failed for chord ' + str(i+1))
   if not errors:
     errors.append('No errors')
   return Report(errors, chords[1:-1])

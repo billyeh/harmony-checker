@@ -1,71 +1,73 @@
 <!doctype html>
+<canvas id="music"></canvas>
+{% for error in errors %}
+<br />
+<span class="error">{{ error }}</span>
+{% endfor %}
 <script src="vexflow.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
-<canvas width="700px" height="200px" id="music"></canvas>
 <script>
   var canvas = $("#music")[0];
-  var renderer = new Vex.Flow.Renderer(canvas,
-    Vex.Flow.Renderer.Backends.CANVAS);
-
+  var renderer = new Vex.Flow.Renderer(canvas, Vex.Flow.Renderer.Backends.CANVAS);
   var ctx = renderer.getContext();
-  var stave = new Vex.Flow.Stave(10, 0, 500);
-
+  var WIDTH = 800;
+  var HEIGHT = 200;
+  var CHUNK = 8;
   var chords = {{ chords|tojson }};
-  console.log(chords);
+  canvas.width = WIDTH;
+  canvas.height = HEIGHT * Math.ceil(chords.length / CHUNK);
 
-  var sig = new Vex.Flow.KeySignature("{{key}}");
-  sig.addToStave(stave);
-  stave.addClef("treble").setContext(ctx).draw();
-
-  var notes = [];
-  var ACCIDENTALS = {
-    "--": "bb",
-    "-": "b",
-    "+": "#",
-    "++": "##",
-    "": "n"
-  };
-  for (var i = 0; i < chords.length; i++) {
-    var chord = chords[i].notes.reverse();
-    var keys = [];
-    for (var j = 0; j < chord.length; j++) {
-      keys.push(chord[j].key);
-    }
-    var staveNote = new Vex.Flow.StaveNote({keys: keys, duration: "q"});
-    for (var j = 0; j < chord.length; j++) {
-      var note = chord[j];
-      if (note.displayAcc) {
-        if (note.accidental in ACCIDENTALS) {
-          note.accidental = ACCIDENTALS[note.accidental];
-        }
-        staveNote.addAccidental(j, new Vex.Flow.Accidental(note.accidental));
-      }
-    }
-    staveNote.addModifier(0, new Vex.Flow.Annotation(chords[i].roman)
-      .setVerticalJustification(Vex.Flow.Annotation.VerticalJustify.BOTTOM));
-    notes.push(staveNote);
+  for (var i = 0; i < chords.length; i += CHUNK) {
+    var someChords = chords.slice(i, i + CHUNK);
+    var index = i / CHUNK;
+    var stave = new Vex.Flow.Stave(10, index * HEIGHT, WIDTH);
+    renderChords(someChords, stave, ctx);
   }
 
-   // Create a voice in 4/4
-   var voice = new Vex.Flow.Voice({
-     num_beats: 4,
-     beat_value: 4,
-     resolution: Vex.Flow.RESOLUTION
-   });
-   voice.setStrict(false);
+  function renderChords(chords, stave) {
+    console.log(chords);
 
-   // Add notes to voice
-   voice.addTickables(notes);
+    var sig = new Vex.Flow.KeySignature("{{key}}");
+    sig.addToStave(stave);
+    stave.addClef("treble").setContext(ctx).draw();
 
-   // Format and justify the notes to 500 pixels
-   var formatter = new Vex.Flow.Formatter().
-     joinVoices([voice]).format([voice], 500);
+    var notes = [];
+    var ACCIDENTALS = {
+      "--": "bb",
+      "-": "b",
+      "+": "#",
+      "++": "##",
+      "": "n"
+    };
+    for (var i = 0; i < chords.length; i++) {
+      var chord = chords[i].notes.reverse();
+      var keys = [];
+      for (var j = 0; j < chord.length; j++) {
+        keys.push(chord[j].key);
+      }
+      var staveNote = new Vex.Flow.StaveNote({keys: keys, duration: "q"});
+      for (var j = 0; j < chord.length; j++) {
+        var note = chord[j];
+        if (note.displayAcc) {
+          note.accidental = ACCIDENTALS[note.accidental] || note.accidental;
+          staveNote.addAccidental(j, new Vex.Flow.Accidental(note.accidental));
+        }
+      }
+      staveNote.addModifier(0, new Vex.Flow.Annotation(chords[i].roman)
+        .setVerticalJustification(Vex.Flow.Annotation.VerticalJustify.BOTTOM));
+      notes.push(staveNote);
+    }
 
-   // Render voice
-   voice.draw(ctx, stave);
+     var voice = new Vex.Flow.Voice({
+       num_beats: chords.length,
+       beat_value: 4,
+       resolution: Vex.Flow.RESOLUTION
+     });
+     voice.addTickables(notes);
+     var notesWidth = chords.length / CHUNK * WIDTH;
+     var formatter = new Vex.Flow.Formatter().
+       joinVoices([voice]).format([voice], notesWidth);
+     voice.draw(ctx, stave);
+   }
 </script>
-{% for error in errors %}
-  <br />
-  <span class="error">{{ error }}</span>
-{% endfor %}
 
