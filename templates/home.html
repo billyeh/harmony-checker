@@ -1,10 +1,25 @@
 {% extends "layout.html" %}
 {% block body %}
-<h2>Upload a file<h2>
+<h2>Upload a MusicXML File</h2>
 <form action="" method="post" enctype="multipart/form-data">
   <input type="file" name="file">
   <input type="submit" value="Upload">
 </form>
+<p>
+You can export a <a href="http://www.musicxml.com">MusicXML</a> file from 
+most popular music editors like Sibelius, Finale or MuseScore.
+</p>
+<p>
+This site uses <a href="http://web.mit.edu/music21/">Music21</a> to analyze
+the music for basic harmony rules as followed in the 17th century, as listed
+below. It displays the chords as analyzed using 
+<a href="http://www.vexflow.com">VexFlow</a>, along with any errors. 
+</p>
+<p>
+Of course, these rules by no means apply to every piece of music. The philosophy
+with them is to catch and warn about as many potential errors as possible, 
+allowing the composer to choose whether to ignore them or not.
+</p>
 <h2>Rules</h2>
 {% for rule in rules %}
   <h3>{{ rule[0] }}</h3>
