@@ -285,6 +285,9 @@ def NoRootDiminishedChords(prev, curr, next):
   return True
 
 def SevenSevenChordResolved(prev, curr, next):
+  """Resolve seven seven chords properly
+
+  """
 
   return True
 

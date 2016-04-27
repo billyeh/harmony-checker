@@ -1,3 +1,4 @@
+import inspect
 from shutil import copyfile
 from flask import Flask, request, render_template
 from harmony import analyze_file, rules, Report
@@ -13,7 +14,9 @@ def upload_file():
     return render_template('results.html', errors=report.errors, key=report.key,
         chords=report.chords)
   else:
-    return render_template('home.html')
+    names = map(lambda x: x.__name__, rules)
+    docs = map(inspect.getdoc, rules)
+    return render_template('home.html', rules=zip(names, docs))
 
 @app.route('/vexflow.js')
 def send_vexflow():

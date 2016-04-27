@@ -5,4 +5,9 @@
   <input type="file" name="file">
   <input type="submit" value="Upload">
 </form>
+<h2>Rules</h2>
+{% for rule in rules %}
+  <h3>{{ rule[0] }}</h3>
+  <p style="font-family: courier">{{ rule[1].replace('\n', '<br>')|safe }}</p>
+{% endfor %}
 {% endblock body %}
