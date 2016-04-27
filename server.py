@@ -13,18 +13,15 @@ def upload_file():
     return render_template('results.html', errors=report.errors, key=report.key,
         chords=report.chords)
   else:
-    return '''
-      <!doctype html>
-      <h1>Upload new File</h1>
-      <form action="" method=post enctype=multipart/form-data>
-        <p><input type=file name=file>
-           <input type=submit value=Upload>
-      </form>
-      '''
+    return render_template('home.html')
 
 @app.route('/vexflow.js')
 def send_vexflow():
   return app.send_static_file('vexflow.js')
+
+@app.route('/css/site.css')
+def send_css():
+  return app.send_static_file('css/site.css')
 
 if __name__ == '__main__':
   app.run()

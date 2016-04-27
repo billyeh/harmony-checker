@@ -1,73 +1,75 @@
-<!doctype html>
-<canvas id="music"></canvas>
-{% for error in errors %}
-<br />
-<span class="error">{{ error }}</span>
-{% endfor %}
-<script src="vexflow.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
-<script>
-  var canvas = $("#music")[0];
-  var renderer = new Vex.Flow.Renderer(canvas, Vex.Flow.Renderer.Backends.CANVAS);
-  var ctx = renderer.getContext();
-  var WIDTH = 800;
-  var HEIGHT = 200;
-  var CHUNK = 8;
-  var chords = {{ chords|tojson }};
-  canvas.width = WIDTH;
-  canvas.height = HEIGHT * Math.ceil(chords.length / CHUNK);
+{% extends "layout.html" %}
+{% block body %}
 
-  for (var i = 0; i < chords.length; i += CHUNK) {
-    var someChords = chords.slice(i, i + CHUNK);
-    var index = i / CHUNK;
-    var stave = new Vex.Flow.Stave(10, index * HEIGHT, WIDTH);
-    renderChords(someChords, stave, ctx);
-  }
-
-  function renderChords(chords, stave) {
-    console.log(chords);
-
-    var sig = new Vex.Flow.KeySignature("{{key}}");
-    sig.addToStave(stave);
-    stave.addClef("treble").setContext(ctx).draw();
-
-    var notes = [];
-    var ACCIDENTALS = {
-      "--": "bb",
-      "-": "b",
-      "+": "#",
-      "++": "##",
-      "": "n"
-    };
-    for (var i = 0; i < chords.length; i++) {
-      var chord = chords[i].notes.reverse();
-      var keys = [];
-      for (var j = 0; j < chord.length; j++) {
-        keys.push(chord[j].key);
-      }
-      var staveNote = new Vex.Flow.StaveNote({keys: keys, duration: "q"});
-      for (var j = 0; j < chord.length; j++) {
-        var note = chord[j];
-        if (note.displayAcc) {
-          note.accidental = ACCIDENTALS[note.accidental] || note.accidental;
-          staveNote.addAccidental(j, new Vex.Flow.Accidental(note.accidental));
-        }
-      }
-      staveNote.addModifier(0, new Vex.Flow.Annotation(chords[i].roman)
-        .setVerticalJustification(Vex.Flow.Annotation.VerticalJustify.BOTTOM));
-      notes.push(staveNote);
+  <canvas id="music" class="center-block"></canvas>
+  {% for error in errors %}
+  <span style="width: 550px" class="error center-block">{{ error }}</span>
+  {% endfor %}
+  <script src="vexflow.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
+  <script>
+    var canvas = $("#music")[0];
+    var renderer = new Vex.Flow.Renderer(canvas, Vex.Flow.Renderer.Backends.CANVAS);
+    var ctx = renderer.getContext();
+    var WIDTH = 550;
+    var HEIGHT = 200;
+    var CHUNK = 4;
+    var chords = {{ chords|tojson }};
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT * Math.ceil(chords.length / CHUNK);
+  
+    for (var i = 0; i < chords.length; i += CHUNK) {
+      var someChords = chords.slice(i, i + CHUNK);
+      var index = i / CHUNK;
+      var stave = new Vex.Flow.Stave(10, index * HEIGHT, WIDTH);
+      renderChords(someChords, stave, ctx);
     }
+  
+    function renderChords(chords, stave) {
+      console.log(chords);
+  
+      var sig = new Vex.Flow.KeySignature("{{key}}");
+      sig.addToStave(stave);
+      stave.addClef("treble").setContext(ctx).draw();
+  
+      var notes = [];
+      var ACCIDENTALS = {
+        "--": "bb",
+        "-": "b",
+        "+": "#",
+        "++": "##",
+        "": "n"
+      };
+      for (var i = 0; i < chords.length; i++) {
+        var chord = chords[i].notes.reverse();
+        var keys = [];
+        for (var j = 0; j < chord.length; j++) {
+          keys.push(chord[j].key);
+        }
+        var staveNote = new Vex.Flow.StaveNote({keys: keys, duration: "q"});
+        for (var j = 0; j < chord.length; j++) {
+          var note = chord[j];
+          if (note.displayAcc) {
+            note.accidental = ACCIDENTALS[note.accidental] || note.accidental;
+            staveNote.addAccidental(j, new Vex.Flow.Accidental(note.accidental));
+          }
+        }
+        staveNote.addModifier(0, new Vex.Flow.Annotation(chords[i].roman)
+          .setVerticalJustification(Vex.Flow.Annotation.VerticalJustify.BOTTOM));
+        notes.push(staveNote);
+      }
+  
+       var voice = new Vex.Flow.Voice({
+         num_beats: chords.length,
+         beat_value: 4,
+         resolution: Vex.Flow.RESOLUTION
+       });
+       voice.addTickables(notes);
+       var notesWidth = chords.length / CHUNK * WIDTH;
+       var formatter = new Vex.Flow.Formatter().
+         joinVoices([voice]).format([voice], notesWidth);
+       voice.draw(ctx, stave);
+     }
+  </script>
 
-     var voice = new Vex.Flow.Voice({
-       num_beats: chords.length,
-       beat_value: 4,
-       resolution: Vex.Flow.RESOLUTION
-     });
-     voice.addTickables(notes);
-     var notesWidth = chords.length / CHUNK * WIDTH;
-     var formatter = new Vex.Flow.Formatter().
-       joinVoices([voice]).format([voice], notesWidth);
-     voice.draw(ctx, stave);
-   }
-</script>
-
+{% endblock body %}
