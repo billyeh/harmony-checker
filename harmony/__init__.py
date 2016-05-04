@@ -321,6 +321,7 @@ rules = [
   VoiceOverlap,
   FirstAndLastChord,
   ResolveLeadingTone,
+  LeadingToneApproachedFromAboveInMinor,
   ResolveSevenths,
   PrepareSevenths,
   NoAugmentedSecond,
