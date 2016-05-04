@@ -207,6 +207,28 @@ def NoAugmentedSecond(prev, curr, next):
       return False
   return True
 
+def LeadingToneApproachedFromAboveInMinor(prev, curr, next):
+  """Approach leading tone from above in minor keys to avoid awkward intervals.
+
+  >>> c1 = chord.Chord(['A2', 'C2', 'E1', 'A1'])
+  >>> c1.key = key.Key('a')
+  >>> c2 = chord.Chord(['E2', 'B2', 'G#1', 'E1'])
+  >>> c2.key = key.Key('a')
+  >>> LeadingToneApproachedFromAboveInMinor(c1, c2, None)
+  False
+  """
+  if not prev or curr.key.mode != 'minor':
+    return True
+  for i, p in enumerate(curr.pitches):
+    degree, accidental = curr.key.getScaleDegreeAndAccidentalFromPitch(p)
+    accidental = accidental.name if accidental else ''
+    if degree != 7 or accidental != 'sharp':
+      continue
+    val = interval.notesToGeneric(p, prev.pitches[i]).staffDistance
+    if val < 0:
+      return False
+  return True
+
 def ParallelOctavesFifthsUnisons(prev, curr, next):
   """Voices moving in parallel 5ths, 8ves, or 1sts are bad.
 
