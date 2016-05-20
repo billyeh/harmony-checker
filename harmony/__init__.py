@@ -18,10 +18,11 @@ def Spacing(prev, curr, next):
   False
   """
 
-  for i in range(2):
+  for i in range(len(curr.pitches) - 2): # don't check bass
     p1, p2 = (curr.pitches[i], curr.pitches[i+1])
     dist = abs(interval.notesToGeneric(p1, p2).staffDistance)
     if dist > 7:
+      print(p1, p2)
       return False
   return True
 
@@ -47,8 +48,8 @@ def VocalRanges(prev, curr, next):
 
   ranges = [('C4', 'G5'), ('G3', 'D5'), ('C3', 'G4'), ('D2', 'C4')]
   pitches = curr.pitches
-  for i, r in enumerate(ranges):
-    if pitches[i] < pitch.Pitch(r[0]) or pitches[i] > pitch.Pitch(r[1]):
+  for i, p in enumerate(pitches):
+    if p < pitch.Pitch(ranges[i][0]) or p > pitch.Pitch(ranges[i][1]):
       return False
   return True
 
@@ -61,7 +62,7 @@ def VoiceCrossing(prev, curr, next):
   False
   """
 
-  for i in range(3):
+  for i in range(len(curr.pitches) - 1):
     if curr.pitches[i] < curr.pitches[i+1]:
       return False
   return True
@@ -80,10 +81,11 @@ def VoiceOverlap(prev, curr, next):
 
   if not prev:
     return True
-  for i in range(3):
+  num = min(len(curr.pitches), len(prev.pitches)) - 1
+  for i in range(num):
     if curr.pitches[i+1] > prev.pitches[i]:
       return False
-  for i in range(3):
+  for i in range(num):
     if curr.pitches[i] < prev.pitches[i+1]:
       return False
   return True
@@ -135,8 +137,8 @@ def ResolveLeadingTone(prev, curr, next):
     return True
   currDegrees = list(map(lambda x: x[0], curr.scaleDegrees))
   nextDegrees = list(map(lambda x: x[0], next.scaleDegrees))
-  for i in range(4):
-    if currDegrees[i] == 7:
+  for i, c in enumerate(currDegrees):
+    if c == 7:
       if curr.key.mode == 'major' and nextDegrees[i] != 1:
         return False
       p = curr.pitches[i]
@@ -159,11 +161,11 @@ def ResolveSevenths(prev, curr, next):
 
   if not next:
     return True
-  for i in range(4):
-    if curr.pitches[i] == curr.seventh:
+  for i, p in enumerate(curr.pitches):
+    if p == curr.seventh:
       m2 = interval.notesToGeneric(note.Note('c'), note.Note('b'))
       M2 = interval.notesToGeneric(note.Note('g'), note.Note('f'))
-      return interval.notesToGeneric(curr.pitches[i], next.pitches[i]) in [m2, M2]
+      return interval.notesToGeneric(p, next.pitches[i]) in [m2, M2]
   return True
 
 def PrepareSevenths(prev, curr, next):
@@ -181,7 +183,8 @@ def PrepareSevenths(prev, curr, next):
 
   if not prev:
     return True
-  for i in range(4):
+  num = min(len(curr.pitches), len(prev.pitches))
+  for i in range(num):
     if curr.pitches[i] == curr.seventh:
       if not curr.pitches[i].name in prev.pitchNames:
         return True
@@ -201,7 +204,8 @@ def NoAugmentedSecond(prev, curr, next):
 
   if not prev:
     return True
-  for i in range(4):
+  num = min(len(curr.pitches), len(prev.pitches))
+  for i in range(num):
     full = _diatonicInterval(curr.pitches[i], prev.pitches[i])
     if full.name == 'A2':
       return False
@@ -244,8 +248,9 @@ def ParallelOctavesFifthsUnisons(prev, curr, next):
   if not prev:
     return True
   parallels = ['P8', 'P5', 'P1']
-  for i in range(4):
-    for j in range(4):
+  num = min(len(curr.pitches), len(prev.pitches))
+  for i in range(num):
+    for j in range(num):
       if i == j:
         continue
       full = _diatonicInterval(curr.pitches[i], curr.pitches[j])
@@ -272,8 +277,9 @@ def HiddenOctavesAndFifths(prev, curr, next):
 
   if not prev:
     return True
-  for i in range(4):
-    for j in range(4):
+  num = min(len(curr.pitches), len(prev.pitches))
+  for i in range(num):
+    for j in range(num):
       firstInt = interval.notesToGeneric(prev.pitches[i],
           curr.pitches[i]).staffDistance
       secondInt = interval.notesToGeneric(prev.pitches[j],
@@ -379,11 +385,12 @@ class Report:
 
 def main():
   if len(sys.argv) == 1:
+    print("Run __init__.py <MusicXML file> to use this on a file")
     run_tests()
   else:
     data = open(sys.argv[1]).read()
     report = analyze_file(data)
-    print(report.errors)
+    print('\n'.join(report.errors))
   print('Done!')
 
 if __name__ == '__main__':

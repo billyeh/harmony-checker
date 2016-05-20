@@ -1,15 +1,15 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<canvas id="music" class="center-block"></canvas>
+<svg id="svg" viewbox="0 0 550 2400"></svg>
 {% for error in errors %}
-<span style="width: 550px" class="error center-block">{{ error }}</span>
+<div style="width: 550px" class="error center-block">{{ error }}</div>
 {% endfor %}
 <script src="vexflow.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
 <script>
-  var canvas = $("#music")[0];
-  var renderer = new Vex.Flow.Renderer(canvas, Vex.Flow.Renderer.Backends.CANVAS);
+  var canvas = $("#svg")[0];
+  var renderer = new Vex.Flow.Renderer(canvas, Vex.Flow.Renderer.Backends.SVG);
   var ctx = renderer.getContext();
   var WIDTH = 550;
   var HEIGHT = 200;
@@ -26,7 +26,6 @@
   }
 
   function renderChords(chords, stave) {
-    console.log(chords);
 
     var sig = new Vex.Flow.KeySignature("{{key}}");
     sig.addToStave(stave);
@@ -70,6 +69,8 @@
        joinVoices([voice]).format([voice], notesWidth);
      voice.draw(ctx, stave);
    }
+
+   canvas.height = 2400;
 </script>
 <br>
 <a href="/">Back</a>
